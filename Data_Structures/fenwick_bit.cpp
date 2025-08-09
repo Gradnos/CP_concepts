@@ -15,13 +15,22 @@ using namespace std;
 
 
 
-// index starts at 1
-void add (vector<ll>& f, ll id, ll x){ // add x to f[id]
-    for(;id<sz(f); id+=id&(-id)) f[id]+=x;
-};
+template<typename T>
+struct FEN{
+    int n;
+    vector<T> f;
+    FEN(int n) : n(n), f(n + 1) {}
+    void add(int id, T x) {
+        for (; id <= n; id += id & -id)f[id] += x;
+    }
 
-ll get(vector<ll>& f, ll id){ // get the prefix sum to f[id] including
-    ll sum = 0;
-    for(;id;id-=id&(-id)) sum+=f[id];
-    return sum;
+    ll get(int id) const {
+        ll sum = 0;
+        for (; id > 0; id -= id & -id) sum += f[id];
+        return sum;
+    }
+
+    ll range_sum(int l, int r) {
+         return get(r) - get(l - 1);
+    }
 };

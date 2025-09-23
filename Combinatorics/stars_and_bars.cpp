@@ -18,7 +18,7 @@ mint strbrUprBnd(ll n, ll m, ll mx){ // sum, gropus, max element(upperbound)
         mint added = C(n,t)*strbr(m-t*(mx+1), n);
         if(t%2) added = added * (M-1);
         ans = ans+added;
-    }
+    }   
     return ans;
 }
 

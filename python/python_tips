@@ -1,0 +1,15 @@
+# ======= heap
+import heapq
+myheap = []
+heapq.heappush(myheap, 15)
+x = heapq.heappop(myheap)
+
+
+
+# input multiple tihngs ========== 
+n,m,k = map(int, input().split())
+
+
+# 2d array
+arr = [[0 for _ in range(n)] for _ in range(m)]
+

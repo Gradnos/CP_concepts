@@ -6,10 +6,20 @@ x = heapq.heappop(myheap)
 
 
 
-# input multiple tihngs ========== 
+# ==========  input multiple tihngs 
 n,m,k = map(int, input().split())
 
 
-# 2d array
+# ==========  2d array
 arr = [[0 for _ in range(n)] for _ in range(m)]
+
+
+# ========== read an array and sort
+arr = list(map(int, input().split()))
+arr.sort()
+
+# ========== enumerato over element and index in array
+for i, el in enumerate(arr):
+    pass
+
 

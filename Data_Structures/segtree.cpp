@@ -18,7 +18,7 @@ using namespace std;
 
 // 0 indexed segment tree
 template<class T> struct segtree{
-    int _n, size, log; 
+    int _n, size, log;
     vec<T> d;
     segtree(): segtree(0){};
     segtree(int n) : segtree(vec<T>(n)){};
@@ -60,7 +60,39 @@ template<class T> struct segtree{
         }
         return sml + smr;
     }
+    
+    // optional   (v, id) are for constaint
+    
+    // ll lrec(ll i, ll l, ll r, ll v, ll id){
+    //     if(l > id) return -1;
+    //     if(d[i].vala < v) return -1; // a check for constraint
+    //     if(l+1 == r) return i - size;
+    //     ll m = (l + r) / 2;
+    //     ll rans = lrec(i*2+1,m,r,v,id);
+    //     if(rans != -1) return rans;
+    //     return lrec(i*2,l,m,v,id);
+    // };
  
+    // ll rrec(ll i, ll l, ll r, ll v, ll id){
+    //     if(r-1 < id) return -1;
+    //     if(d[i].valb < v) return -1; // a check for constraint
+    //     if(l+1 == r) return i - size;
+    //     ll m = (l+r) / 2;
+    //     ll lans = rrec(i*2,l,m,v,id);
+    //     if(lans != -1) return lans;
+    //     return rrec(i*2+1, m,r,v,id);
+    // }
+ 
+ 
+    // ll qrl(ll v, ll id){
+    //     return lrec(1,0,size,v,id);
+    // }
+ 
+    // ll qrr(ll v, ll id){
+    //     return rrec(1,0,size,v,id);
+    // }
+ 
+
     T allqr(){
         return d[1];
     }

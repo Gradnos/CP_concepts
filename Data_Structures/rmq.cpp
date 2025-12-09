@@ -28,7 +28,7 @@ struct RMQ {
     }
 
     // Query for the minimum elements index in the range [l, r] (inclusive)
-    inline int qr(int l, int r) const {
+    int qr(int l, int r) const {
         if (l > r) return 1e9; // Or handle error appropriately
         int k = lg[r - l + 1];
         return op( st[k][l], st[k][r - (1 << k) + 1]);

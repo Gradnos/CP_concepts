@@ -3,6 +3,10 @@ import heapq
 myheap = []
 heapq.heappush(myheap, 15)
 x = heapq.heappop(myheap)
+# For custom objects/tuples, heap uses first element
+priority = 5
+item = (6,7)
+heapq.heappush(myheap, (priority, item))
 
 
 
@@ -22,4 +26,54 @@ arr.sort()
 for i, el in enumerate(arr):
     pass
 
+# ========= defaultDict
+from collections import defaultdict
+d = defaultdict(int)  # default 0
+d['a'] += 1
 
+# ========= stringReverse
+s = "hello"
+s[::-1]  # reverse
+''.join(reversed(s))  # also reverse
+
+# ===== gcd / lcm
+import math
+g = math.gcd(12, 18)
+l = math.lcm(12, 18)
+
+# ===== deque
+from collections import deque
+q = deque()
+q.append(1)
+q.appendleft(0)
+x = q.popleft()
+x = q.pop()
+
+# ========= sorting
+# ascending
+arr.sort()        # in-place
+sorted_arr = sorted(arr)  # returns new list
+
+# descending
+arr.sort(reverse=True)
+sorted_arr = sorted(arr, reverse=True)
+
+
+# ===== custom sort
+arr = [(1,3),(2,2),(3,1)]
+arr.sort(key=lambda x: x[1])  # sort by second element
+
+# ===== copy list
+arr2 = list(arr)
+
+
+# ===== dict iteration
+d = {'a':1,'b':2}
+for k,v in d.items():
+    pass
+
+
+# ====== fast input if needed
+import sys
+input = sys.stdin.readline  # Much faster
+print = sys.stdout.write    # For output-heavy problems

@@ -1,0 +1,1 @@
+Fix hashing for strings. it had problems and was fixed  here https://codeforces.com/gym/103081/submission/384172186

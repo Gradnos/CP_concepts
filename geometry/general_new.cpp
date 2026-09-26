@@ -47,7 +47,9 @@ struct P {
 // -1 -> right turn / clockwise
 //  0 -> collinear
 int orient(P a, P b, P c) {
-    return sgn((b - a).cross(c - a));
+    ld cross_val = (b - a).cross(c - a);
+    ld scale = (b - a).norm() * (c - a).norm() * EPS;
+    return (cross_val > scale) - (cross_val < -scale);
 }
 
 

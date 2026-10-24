@@ -1,1 +1,6 @@
 Fix hashing for strings. it had problems and was fixed  here https://codeforces.com/gym/103081/submission/384172186
+
+have big prime numbers just in case
+https://codeforces.com/gym/106124/submission/389680015 this with my gauss
+
+in suffix array. add a possibility to store C array for string comparisons

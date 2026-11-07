@@ -6,3 +6,5 @@ https://codeforces.com/gym/106124/submission/389680015 this with my gauss
 in suffix array. add a possibility to store C array for string comparisons
 
 stoer_wagner for min cut
+
+minimum directed spanning tree (TLR, edmonds algorithm)

@@ -1,89 +1,55 @@
-#include <cstddef>
-#include <iostream>
+#include <vector>
 using namespace std;
-#define MAXN 100
 
-/* data type for individual
- * node in the segment tree */
-struct node
-{
-    int val;
-    node* left, *right;
-    node() {}
-    node(node* l, node* r, int v){
-        left = l;
-        right = r;
-        val = v;
+// Persistent segment tree: point update + range sum, keeps every version.
+// 0-indexed positions. node 0 = null. root[version] = root node index.
+//
+// usage:
+//   PST pst({1, 2, 3, 4, 5});      // version 0 = the original array
+//   int v1 = pst.set(0, 4, 1);     // version 1: a[4] = 1  (fork of version 0)
+//   int v2 = pst.set(v1, 2, 10);   // version 2: a[2] = 10 (fork of version 1)
+//   pst.query(0,  0, 4);           // sum over [0,4] in version 0 = 15
+//   pst.query(v1, 0, 4);           // sum over [0,4] in version 1 = 11
+//   pst.query(v2, 0, 4);           // sum over [0,4] in version 2 = 16
+struct PST {
+    struct Node { int l = 0, r = 0, sum = 0; };
+    vector<Node> t;
+    vector<int> root;
+    int n;
+
+    PST(const vector<int>& a) : n((int)a.size()) {
+        t.push_back(Node());                          // null node
+        root.push_back(build(a, 0, n - 1));
+    }
+    int build(const vector<int>& a, int lo, int hi) {
+        int v = (int)t.size(); t.push_back(Node());
+        if (lo == hi) { t[v].sum = a[lo]; return v; }
+        int m = (lo + hi) / 2;
+        t[v].l = build(a, lo, m);
+        t[v].r = build(a, m + 1, hi);
+        t[v].sum = t[t[v].l].sum + t[t[v].r].sum;
+        return v;
+    }
+    // returns the new version id after setting a[p] = x on top of `version`
+    int set(int version, int p, int x) {
+        int v = upd(p, x, root[version], 0, n - 1);
+        root.push_back(v);
+        return (int)root.size() - 1;
+    }
+    int upd(int p, int x, int prev, int lo, int hi) {
+        int v = (int)t.size(); t.push_back(t[prev]);
+        if (lo == hi) { t[v].sum = x; return v; }
+        int m = (lo + hi) / 2;
+        if (p <= m) t[v].l = upd(p, x, t[prev].l, lo, m);
+        else        t[v].r = upd(p, x, t[prev].r, m + 1, hi);
+        t[v].sum = t[t[v].l].sum + t[t[v].r].sum;
+        return v;
+    }
+    int query(int version, int ql, int qr) { return qry(root[version], ql, qr, 0, n - 1); }  // [ql, qr]
+    int qry(int v, int ql, int qr, int lo, int hi) {
+        if (!v || qr < lo || hi < ql) return 0;
+        if (ql <= lo && hi <= qr) return t[v].sum;
+        int m = (lo + hi) / 2;
+        return qry(t[v].l, ql, qr, lo, m) + qry(t[v].r, ql, qr, m + 1, hi);
     }
 };
-int arr[MAXN];
-node* version[MAXN];
-// Constructs Version-0
-// Time Complexity : O(nlogn)
-void build(node* n,int low,int high)
-{
-    if (low==high)
-    {
-        n->val = arr[low];
-        return;
-    }
-    int mid = (low+high) / 2;
-    n->left = new node(NULL, NULL, 0);
-    n->right = new node(NULL, NULL, 0);
-    build(n->left, low, mid);
-    build(n->right, mid+1, high);
-    n->val = n->left->val + n->right->val;
-}
-void upgrade(node* prev, node* cur, int low, int high,int idx, int value){
-    if (idx > high || idx < low || low > high) return;
-    if (low == high){
-        cur->val = value;
-        return;
-    }
-    int mid = (low+high) / 2;
-    if (idx <= mid){
-        cur->right = prev->right;
-        cur->left = new node(NULL, NULL, 0);
-        upgrade(prev->left,cur->left, low, mid, idx, value);
-    }else{
-        cur->left = prev->left;
-        cur->right = new node(NULL, NULL, 0);
-        upgrade(prev->right, cur->right, mid+1, high, idx, value);
-    }
-    cur->val = cur->left->val + cur->right->val;
-}
-
-int query(node* n, int low, int high, int l, int r)
-{
-    if (l > high || r < low || low > high) return 0;
-    if (l <= low && high <= r)return n->val;
-    int mid = (low+high) / 2;
-    int p1 = query(n->left,low,mid,l,r);
-    int p2 = query(n->right,mid+1,high,l,r);
-    return p1+p2;
-}
-
-int main(int argc, char const *argv[])
-{
-    int A[] = {1,2,3,4,5};
-    int n = sizeof(A)/sizeof(int);
-    for (int i=0; i<n; i++) 
-       arr[i] = A[i];
-    // creating Version-0
-    node* root = new node(NULL, NULL, 0);
-    build(root, 0, n-1);
-    version[0] = root;
-    // upgrading to version-1
-    version[1] = new node(NULL, NULL, 0);
-    upgrade(version[0], version[1], 0, n-1, 4, 1);
-    // upgrading to version-2
-    version[2] = new node(NULL, NULL, 0);
-    upgrade(version[1],version[2], 0, n-1, 2, 10);
-    cout << "In version 1 , query(0,4) : ";
-    cout << query(version[1], 0, n-1, 0, 4) << endl;
-    cout << "In version 2 , query(3,4) : ";
-    cout << query(version[2], 0, n-1, 3, 4) << endl;
-    cout << "In version 0 , query(0,3) : ";
-    cout << query(version[0], 0, n-1, 0, 3) << endl;
-    return 0;
-}

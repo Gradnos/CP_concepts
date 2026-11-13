@@ -1,91 +1,53 @@
-// idea -> https://cp-algorithms.com/graph/dinic.html
-// good pbolem -> https://codeforces.com/gym/103438/problem/I
-// ===
-// find MAX FLOW in a graph.
-// O(sqrt(V)*E) - in bipartite graph
-// O(min(v^(2/3),sqrt(E)) * E) - in Unit capacity graph
-// O(v^2*E) - in worst graphs
-// ===
-// used in max flow, min cut, max independent subset, bipartite matching ...
-#include<iostream>
-#include "vector"
-#include <queue>
-
+#include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+const ll INF = 4e18;
 
-#define ll long long
-#define pb push_back
-#define sz(v) (int)v.size()
+// Dinic's max flow. 0-indexed vertices.
+// Used for: max flow, min cut, max bipartite matching, max independent set in bipartite graphs.
+// Idea: https://cp-algorithms.com/graph/dinic.html
+struct Dinic {
+    struct Edge { int to; ll cap; };
+    int n;
+    vector<Edge> edges;
+    vector<vector<int>> adj;
+    vector<int> level, ptr;
 
-const ll  N = 1e5;
-const ll inf = 1e18;
-
-// needed this kind of array for fast updates on capacities;
-struct edge{
-    ll to, capacity;
-}edges[N];
-
-ll vertex_count = 100;
-ll s = 0, t = vertex_count+1; // SOURCE is at [0] index and  SINK is at [vertex_count+1], in total vertex_count+2
-
-vector<ll> adj[N];
-ll currentEdgeId = 0;
-void addEdge(ll from, ll to, ll capacity){
-    
-    // forward edge
-    edges[currentEdgeId] = {to, capacity};
-    adj[from].pb(currentEdgeId); 
-
-    // backward edge
-    edges[currentEdgeId+1] = {from, 0};
-    adj[to].pb(currentEdgeId+1);
-
-    currentEdgeId+=2; // for later additions
-}
-
-ll level[N]; // for tracking which level a vertex is from source
-bool bfs(){
-    // reset before start
-    fill(level,level+N,0); 
-    level[s] = 1;
-
-    queue<ll> q; q.push(s);
-    while(!q.empty()){
-        ll u = q.front(); q.pop();
-        for(int i = 0; i < sz(adj[u]); i++){
-            ll eid = adj[u][i];
-            auto [v,capacity] = edges[eid];
-            if(capacity > 0 && level[v] == 0){
-                level[v] = level[u]+1;
-                q.push(v); // you could check if current is the SINK and stop but finishing probably helps dfs in saturating the paths
+    Dinic(int n) : n(n), adj(n), level(n), ptr(n) {}
+    void addEdge(int u, int v, ll cap) {
+        adj[u].push_back((int)edges.size()); edges.push_back({v, cap});
+        adj[v].push_back((int)edges.size()); edges.push_back({u, 0});
+    }
+    bool bfs(int s, int t) {
+        fill(level.begin(), level.end(), -1);
+        queue<int> q; q.push(s); level[s] = 0;
+        while (!q.empty()) {
+            int u = q.front(); q.pop();
+            for (int id : adj[u]) {
+                auto& e = edges[id];
+                if (e.cap > 0 && level[e.to] == -1) { level[e.to] = level[u] + 1; q.push(e.to); }
             }
         }
+        return level[t] != -1;
     }
-    return level[t] != 0;
-}
-
-// try to add as much flow as possible and prune bad vertexes.
-ll dfs(ll u, ll pushed){
-    if(pushed == 0 || u == t) return pushed;
-    ll cur = 0;
-    for(int i = 0; i < sz(adj[u]); i++){
-        ll eid = adj[u][i];
-        auto [v,capacity] = edges[eid];
-        if(capacity > 0 && level[v] == level[u] + 1){
-            ll pos = dfs(v, min(pushed-cur, capacity));
-            edges[eid].capacity-=pos; // subtract new flow from forward edge
-            edges[eid^1].capacity+=pos; // add new flow to reverse edge
-            cur+=pos; if(cur == pushed) break;
+    ll dfs(int u, int t, ll pushed) {
+        if (u == t || pushed == 0) return pushed;
+        for (int& cid = ptr[u]; cid < (int)adj[u].size(); cid++) {
+            int id = adj[u][cid];
+            auto& e = edges[id];
+            if (e.cap > 0 && level[e.to] == level[u] + 1) {
+                ll tr = dfs(e.to, t, min(pushed, e.cap));
+                if (tr) { e.cap -= tr; edges[id ^ 1].cap += tr; return tr; }
+            }
         }
+        return 0;
     }
-    if(cur < pushed) level[u] = 0; // if the given flow was not used fully, no more flow can go here so prune this node for others
-    return cur;
-}
-
-
-
-ll dinic(){
-    ll current = 0;
-    while(bfs()) current+=dfs(s,inf);
-    return current;
-}
+    ll maxFlow(int s, int t) {
+        ll flow = 0;
+        while (bfs(s, t)) {
+            fill(ptr.begin(), ptr.end(), 0);
+            while (ll pushed = dfs(s, t, INF)) flow += pushed;
+        }
+        return flow;
+    }
+};

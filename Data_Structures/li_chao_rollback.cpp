@@ -1,7 +1,15 @@
-#include <vector>
+#include <bits/stdc++.h>
 #define pb push_back
 using namespace std;
 
+// Li Chao tree (max) with rollback. Domain is whatever [acl, acr] you pass (root ac=1).
+// add() opens a new history frame; rollback() undoes the most recent add().
+//
+// usage (domain x in [0, n]):
+//   lct t(n);
+//   t.add(line(a, b), 1, 0, n);       // insert y = a*x + b over [0, n]
+//   int best = t.getmax(x, 1, 0, n);  // max y at x
+//   t.rollback();                     // undo the last add
 
 struct line{
     int a,b;

@@ -1,29 +1,16 @@
-#include <map>
-#include <vector>
-#include <algorithm>
-
+#include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
-#define ll long long
-#define vec vector
-#define pb push_back
-#define all(v) v.begin(), v.end()
+// AHU tree hashing: rooted trees (u, p) are isomorphic iff their hashes are equal.
+map<vector<int>, int> mp;
+vector<vector<int>> g;
 
-
-
-map<vec<ll>,ll> hashes;
-vec<vec<ll>> g;
-ll root = 0;
-ll lastid = 0;
-
-ll hashTree(ll id, ll p){
-    vec<ll> children;
-    for(auto u : g[id]){
-        if(u == p) continue;
-        children.pb(hashTree(u,id));
-    }
-    sort(all(children));
-    if(hashes.count(children)) return hashes[children];
-    hashes[children] = ++lastid;
-    return lastid;
+int hashTree(int u, int p) {
+    vector<int> h;
+    for (int v : g[u]) if (v != p) h.push_back(hashTree(v, u));
+    sort(h.begin(), h.end());
+    auto it = mp.find(h);
+    if (it != mp.end()) return it->second;
+    return mp[h] = (int)mp.size();
 }

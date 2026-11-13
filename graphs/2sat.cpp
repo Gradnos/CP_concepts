@@ -1,102 +1,38 @@
-// However 2-SAT can be solved efficiently in  
-// O(n + m)  where  
-// n is the number of variables and  
-// m is the number of clauses.
-// The form -> (a or b) anb (c or d) ...
-
-#include <iostream>
 #include <vector>
-#include <assert.h>
-#include <queue>
-
-
-#define ll long long
-#define vec vector
-#define pb push_back
-#define sz(v) (int)v.size()
-#define fr(i,n) for(ll i = 0; i < n; i++)
-#define F first
-#define S second
-
-
 using namespace std;
 
-struct TwoSatSolver {
-    int n_vars;
-    int n_vertices;
-    vec<vec<int>> adj, adj_t;
-    vec<bool> used;
-    vec<int> order, comp;
-    vec<bool> assignment;
+// 2-SAT (Kosaraju). The formula is a conjunction of clauses of the form (a OR b).
+//   clause ( x OR  y) -> addOr(x, 0, y, 0)
+//   clause ( x OR !y) -> addOr(x, 0, y, 1)
+//   clause (!x OR  y) -> addOr(x, 1, y, 0)
+// solve() returns a satisfying assignment, or empty if unsatisfiable.
+struct TwoSAT {
+    int n;
+    vector<vector<int>> g, gt;
+    vector<char> used;
+    vector<int> order, comp;
 
-    TwoSatSolver(int _n_vars)
-    : 
-    n_vars(_n_vars), n_vertices(2 * n_vars), adj(n_vertices),
-    adj_t(n_vertices), used(n_vertices), order(),
-    comp(n_vertices, -1), assignment(n_vars)
-    {
-        order.reserve(n_vertices);
+    TwoSAT(int n) : n(n), g(2 * n), gt(2 * n), used(2 * n), comp(2 * n, -1) {}
+
+    void addImpl(int a, int b) { g[a].push_back(b); gt[b].push_back(a); }
+    void addOr(int a, bool na, int b, bool nb) {   // (a xor na) OR (b xor nb)
+        a = 2 * a ^ na; b = 2 * b ^ nb;
+        addImpl(a ^ 1, b);
+        addImpl(b ^ 1, a);
     }
 
-    void dfs1(int v) {
-        used[v] = true;
-        for (int u : adj[v]) {
-            if (!used[u])
-                dfs1(u);
+    void dfs1(int v) { used[v] = 1; for (int u : g[v]) if (!used[u]) dfs1(u); order.push_back(v); }
+    void dfs2(int v, int cl) { comp[v] = cl; for (int u : gt[v]) if (comp[u] == -1) dfs2(u, cl); }
+
+    // returns an assignment, or empty if unsatisfiable
+    vector<char> solve() {
+        for (int i = 0; i < 2 * n; i++) if (!used[i]) dfs1(i);
+        for (int i = 2 * n - 1, j = 0; i >= 0; i--) if (comp[order[i]] == -1) dfs2(order[i], j++);
+        vector<char> ans(n);
+        for (int i = 0; i < n; i++) {
+            if (comp[2 * i] == comp[2 * i + 1]) return {};
+            ans[i] = comp[2 * i] > comp[2 * i + 1];
         }
-        order.push_back(v);
-    }
-
-    void dfs2(int v, int cl) {
-        comp[v] = cl;
-        for (int u : adj_t[v]) {
-            if (comp[u] == -1)
-                dfs2(u, cl);
-        }
-    }
-
-    bool solve_2SAT() {
-        order.clear();
-        used.assign(n_vertices, false);
-        for (int i = 0; i < n_vertices; ++i) {
-            if (!used[i])
-                dfs1(i);
-        }
-
-        comp.assign(n_vertices, -1);
-        for (int i = 0, j = 0; i < n_vertices; ++i) {
-            int v = order[n_vertices - i - 1];
-            if (comp[v] == -1)
-                dfs2(v, j++);
-        }
-
-        assignment.assign(n_vars, false);
-        for (int i = 0; i < n_vertices; i += 2) {
-            if (comp[i] == comp[i + 1])
-                return false;
-            assignment[i / 2] = comp[i] > comp[i + 1];
-        }
-        return true;
-    }
-
-    void add_disjunction(int a, bool na, int b, bool nb) {
-        // na and nb signify whether a and b are to be negated 
-        a = 2 * a ^ na;
-        b = 2 * b ^ nb;
-        int neg_a = a ^ 1;
-        int neg_b = b ^ 1;
-        adj[neg_a].push_back(b);
-        adj[neg_b].push_back(a);
-        adj_t[b].push_back(neg_a);
-        adj_t[a].push_back(neg_b);
-    }
-
-    static void example_usage() {
-        TwoSatSolver solver(3); // a, b, c
-        solver.add_disjunction(0, false, 1, true);  //     a  v  not b
-        solver.add_disjunction(0, true, 1, true);   // not a  v  not b
-        solver.add_disjunction(1, false, 2, false); //     b  v      c
-        solver.add_disjunction(0, false, 0, false); //     a  v      a
-        assert(solver.solve_2SAT() == true);
+        return ans;
     }
 };

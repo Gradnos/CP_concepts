@@ -1,6 +1,14 @@
+#include <bits/stdc++.h>
 using namespace std;
 
-// T should be a numeric type like long long, double, long double
+// T should be a numeric type like long long, double, long double.
+// This is a MAX Li Chao tree: get(x) returns the maximum y among inserted lines.
+//
+// usage:
+//   LiChao<long long> lc(-1e9, 1e9);      // x-domain [L, R]
+//   lc.insert(a, b, ql, qr);              // add y = a*x + b for x in [ql, qr]
+//   lc.get(x);                            // max y among lines active at x
+// For MIN queries, negate: insert(-a, -b, ql, qr) and return -get(x).
 template<typename T>
 struct LiChao {
     struct Line {
@@ -19,7 +27,7 @@ struct LiChao {
 
     void addFull(Node*& n, T l, T r, Line nw) {
         if (!n) { n = new Node(); }
-        T m = (l + r) / 2;
+        T m = l + (r - l) / 2;   // floor midpoint (also correct for negative l)
         if (n->ln.eval(l) < nw.eval(l)) swap(n->ln, nw);
         if (n->ln.eval(r) >= nw.eval(r) || l == r) return;
         if (n->ln.eval(m) > nw.eval(m))
@@ -36,7 +44,8 @@ struct LiChao {
             addFull(n, l, r, ln);
             return;
         }
-        T m = (l + r) / 2;
+        if (!n) n = new Node();
+        T m = l + (r - l) / 2;   // floor midpoint
         addRange(n->l, l,    m, ql, qr, ln);
         addRange(n->r, m+1,  r, ql, qr, ln);
     }
@@ -50,7 +59,7 @@ struct LiChao {
         if (!n) return std::numeric_limits<T>::lowest();
         T res = n->ln.eval(x);
         if (l == r) return res;
-        T m = (l + r) / 2;
+        T m = l + (r - l) / 2;   // floor midpoint
         if (x <= m) return max(res, query(n->l, l, m, x));
         else         return max(res, query(n->r, m+1, r, x));
     }

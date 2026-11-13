@@ -1,78 +1,29 @@
-#include<iostream>
-#include "vector"
-#include <queue>
-
-
+#include <vector>
 using namespace std;
+using ll = long long;
 
+struct Centroid {
+    int n;
+    vector<vector<int>> g;
+    vector<int> siz, dead, par;
 
-#define ll long long
-#define rep(i,a,b) for(ll i = (a); i <= (b); i++)
-#define per(i,a,b) for(ll i = (a); i >= (b); i--)
-#define vec vector
-#define pb push_back
-#define all(v) v.begin(), v.end()
+    Centroid(int n) : n(n), g(n), siz(n), dead(n), par(n) {}
+    void addEdge(int x, int y) { g[x].push_back(y); g[y].push_back(x); }
 
-
-const ll N = 2e5;
-const ll M = 1e9+7;
-
-
-
-
-// not needed
-struct CentInfo{
-    vec<pair<ll,ll>> dists;
-    ll cid = 0;
-    vec<pair<ll,ll>> parinfo;
-};
-vector<CentInfo> info;
-
-
-
-struct Centroid{
-    int n = 0;
-    vector<ll> siz,dead,par;
-    vec<vec<ll>> g;
-    Centroid(int n) : n(n), siz(n), dead(n), par(n), g(n) {}
- 
-    void addEdge(int x, int y){g[x].pb(y); g[y].pb(x);}
- 
-    int sizeDfs(int id, int p){
-        siz[id] = 1;
-        for(auto u : g[id]){
-            if(u == p || dead[u]) continue;
-            siz[id]+=sizeDfs(u,id);
-        }
-        return siz[id];
+    int sizeDfs(int u, int p) {
+        siz[u] = 1;
+        for (int v : g[u]) if (v != p && !dead[v]) siz[u] += sizeDfs(v, u);
+        return siz[u];
     }
- 
-    int findCentroid(int id, int p, int tot){
-        for(auto u : g[id]) 
-            if(u != p && !dead[u] && siz[u] > tot/2) 
-                return findCentroid(u,id,tot);
-        return id;
+    int findCentroid(int u, int p, int tot) {
+        for (int v : g[u]) if (v != p && !dead[v] && siz[v] > tot / 2) return findCentroid(v, u, tot);
+        return u;
     }
- 
-    void distsDfs(int id, int p, int c, int cd = 0){
-        info[c].dists.pb({cd,id});
-        info[id].parinfo.pb({c,cd});
-        for(auto u : g[id]){
-            if(u == p || dead[u]) continue;
-            distsDfs(u,id,c,cd+1);
-        }
-    }
- 
- 
-    void build(int id = 0, int p = -1){
-        par[id] = p;
-        int tot = sizeDfs(id, p);
-        int c = findCentroid(id, p, tot);
+    void build(int u = 0, int p = -1) {   // par = parent in the centroid tree
+        int tot = sizeDfs(u, p);
+        int c = findCentroid(u, p, tot);
+        par[c] = p;
         dead[c] = 1;
-        distsDfs(c,p,c); // not needed
-        sort(all(info[c].dists)); // not needed
-        for(auto u : g[c]) if(!dead[u]) build(u, c);
+        for (int v : g[c]) if (!dead[v]) build(v, c);
     }
- 
 };
- 

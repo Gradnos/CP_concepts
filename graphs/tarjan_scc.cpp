@@ -1,56 +1,33 @@
-
-#include<vector>
-
-#define ll long long
-#define vec vector
-#define pb push_back
-#define sz(v) (ll)v.size()
-#define fr(i,n) for(int i = 0; i < n; i++)
-
+#include <vector>
+#include <functional>
 using namespace std;
+using ll = long long;
 
+// Tarjan SCC. Returns components (each a list of vertices).
+vector<vector<int>> tarjan(const vector<vector<int>>& g) {
+    int n = (int)g.size(), cnt = 0;
+    vector<int> id(n, -1), low(n, -1);
+    vector<char> on(n, 0);
+    vector<int> stk;
+    vector<vector<int>> comps;
 
-
-void tarjan(){
-    const int n = 100;
-    vec<vec<ll>> g(n);
-
-
-    ll cnt = 0;
-    vec<bool> onstack(n);
-    vec<ll> stk;
-    vec<ll> low(n, -1);
-    vec<ll> ids(n,-1);
-
-
-
-    auto dfs = [&](auto && dfs, ll id) -> void{
-        ids[id] = cnt++;
-        low[id] = ids[id];
-        onstack[id] = 1;
-        stk.pb(id);
-
-        for(auto u : g[id]){
-            if(ids[u] == -1) dfs(dfs,u);
-            if(onstack[u]) low[id] = min(low[id], low[u]);
+    function<void(int)> dfs = [&](int u) {
+        id[u] = low[u] = cnt++;
+        on[u] = 1; stk.push_back(u);
+        for (int v : g[u]) {
+            if (id[v] == -1) dfs(v);
+            if (on[v]) low[u] = min(low[u], low[v]);
         }
-
-        if(ids[id] == low[id]){
-            // new comp 
-            while(sz(stk)){
-                ll x = stk.back(); stk.pop_back();
-                onstack[x] = 0;
-                low[x] = low[id];
-                // add x to comp  add_to_comp(x, low[id]);
-                if(x == id) break;
+        if (id[u] == low[u]) {
+            comps.push_back({});
+            while (true) {
+                int x = stk.back(); stk.pop_back();
+                on[x] = 0;
+                comps.back().push_back(x);
+                if (x == u) break;
             }
         }
     };
-
-
-    fr(i,n){
-        if(ids[i] != -1) continue;
-        dfs(dfs, i);
-    }
-
+    for (int i = 0; i < n; i++) if (id[i] == -1) dfs(i);
+    return comps;
 }

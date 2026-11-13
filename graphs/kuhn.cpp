@@ -1,36 +1,20 @@
-#include <iostream>
 #include <vector>
-
 using namespace std;
-#define ll long long
-#define vec vector
 
-
-
-int n, k;
-vector<vector<int>> g;
-vector<int> mt;
-vector<ll> it;
-
-bool try_kuhn(int v, ll cit) {
-    if (it[v] == cit)
-        return false;
+// Kuhn bipartite matching. g[v] = neighbors of left vertex v; k = #right vertices.
+vector<int> mt, it;
+bool tryKuhn(int v, const vector<vector<int>>& g, int cit) {
+    if (it[v] == cit) return false;
     it[v] = cit;
     for (int to : g[v]) {
-        if (mt[to] == -1 || try_kuhn(mt[to], cit)) {
-            mt[to] = v;
-            return true;
-        }
+        if (mt[to] == -1 || tryKuhn(mt[to], g, cit)) { mt[to] = v; return true; }
     }
     return false;
 }
-
-
-int main(){
+int kuhn(const vector<vector<int>>& g, int k) {   // returns size of a maximum matching
     mt.assign(k, -1);
-    ll cit = 1;
-    for (int v = 0; v < n; ++v) {
-        try_kuhn(v, cit);
-        cit++;
-    }
+    it.assign(g.size(), 0);
+    int cit = 0, ans = 0;
+    for (int v = 0; v < (int)g.size(); v++) if (tryKuhn(v, g, ++cit)) ans++;
+    return ans;
 }

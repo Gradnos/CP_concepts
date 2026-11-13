@@ -17,10 +17,19 @@ using namespace std;
  * neighbouring strings in the suffix array:
  * \texttt{lcp[i] = lcp(sa[i], sa[i-1])}, \texttt{lcp[0] = 0}.
  * The input string must not contain any zero bytes.
-*/
+ */
 
 struct SuffixArray {
 	vector<int> sa, lcp;
+
+	// ---- OPTIONAL: equivalence classes of every doubling layer ----
+	// Uncomment the four lines marked (OPT) to also store, in O(n log n)
+	// total memory, c[k][i] = class of the substring s[i .. i + 2^k - 1].
+	// Two equal-length substrings can then be compared in O(1): with
+	//   k = floor(log2(len)), compare (c[k][i], c[k][i + len - 2^k])
+	//   against (c[k][j], c[k][j + len - 2^k]).
+	// vector<vector<int>> c;                                  // (OPT)
+
 	SuffixArray(string& s, int lim=256) { // or basic_string<int>
 		int n = sz(s) + 1, k = 0, a, b;
 		vector<int> x(all(s)), y(n), ws(max(n, lim)), rank(n);
@@ -35,7 +44,10 @@ struct SuffixArray {
 			swap(x, y), p = 1, x[sa[0]] = 0;
 			for(int i = 1; i < n; i++) a = sa[i - 1], b = sa[i], x[b] =
 				(y[a] == y[b] && y[a + j] == y[b + j]) ? p - 1 : p++;
+			// c.push_back(x);                                 // (OPT)
 		}
+		// int lg = 0; while ((1LL << lg) <= n - 1) lg++;     // (OPT)
+		// while ((int)c.size() < lg) c.push_back(x);          // (OPT)
 		for(int i = 1; i < n; i++) rank[sa[i]] = i;
 		for (int i = 0, j; i < n - 1; lcp[rank[i++]] = k)
 			for (k && k--, j = sa[rank[i] - 1];

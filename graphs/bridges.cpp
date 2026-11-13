@@ -1,67 +1,32 @@
-#include<iostream>
-#include "vector"
-#include <queue>
-
-
+#include <vector>
 using namespace std;
+using ll = long long;
 
+// Returns all bridges of an undirected graph (multi-edges allowed).
+vector<pair<int,int>> bridges;
+vector<vector<int>> adj;
+vector<int> tin, low;
+vector<char> vis;
+int timer;
 
-#define ll long long
-#define rep(i,a,b) for(ll i = (a); i <= (b); i++)
-#define per(i,a,b) for(ll i = (a); i >= (b); i--)
-#define vec vector
-
-const ll N = 2e5;
-const ll M = 1e9+7;
-
-
-void storeBridge(ll x, ll y){
-    // store how you want
-}
-
-void findBridges(vec<vec<ll>> &adj, ll n){
-    ll timer = 0;
-    vec<bool> vis(n+1);
-    vec<ll> tin(n+1,-1), low(n+1,-1);
-
-    auto dfs = [&](auto &&dfs, ll id, ll p = -1)-> void{
-        vis[id] = 1;
-        tin[id] = low[id] = timer++;
-        for(auto u : adj[id]){
-            if(u ==p) continue;
-            if(vis[u]) low[id] = min(low[id], tin[u]);
-            else{
-                dfs(dfs, u, id);
-                low[id] = min(low[id], low[u]);
-                if(low[u] > tin[id]) storeBridge(id,u);
-            }
-        }
-    };
-    
-    rep(i,1,n) if(!vis[i]) dfs(dfs,i);
-
-}
-
-
-// different dfs if multiple edges are allowed
-// makes sure that the parent only gets skipped once
-auto dfs = [&](auto &&dfs, ll id, ll p = -1)-> void{
-    vis[id] = 1;
-    tin[id] = low[id] = timer++;
-    bool parSkipped = 0;
-    for(auto u : adj[id]){
-        if(u ==p && !parSkipped){
-            parSkipped = 1; 
-            continue;
-        }
-        if(vis[u]) low[id] = min(low[id], tin[u]);
-        else{
-            dfs(dfs, u, id);
-            low[id] = min(low[id], low[u]);
-            if(low[u] > tin[id]) storeBridge(id,u);
+void dfs(int u, int p = -1) {
+    vis[u] = 1;
+    tin[u] = low[u] = timer++;
+    bool skipped = false;
+    for (int v : adj[u]) {
+        if (v == p && !skipped) { skipped = true; continue; }   // skip parent once (multi-edges)
+        if (vis[v]) low[u] = min(low[u], tin[v]);
+        else {
+            dfs(v, u);
+            low[u] = min(low[u], low[v]);
+            if (low[v] > tin[u]) bridges.push_back({u, v});
         }
     }
-};
+}
 
-
-
+vector<pair<int,int>> findBridges(int n) {
+    bridges.clear();
+    tin.assign(n, -1); low.assign(n, -1); vis.assign(n, 0); timer = 0;
+    for (int i = 0; i < n; i++) if (!vis[i]) dfs(i);
+    return bridges;
+}

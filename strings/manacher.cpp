@@ -1,45 +1,27 @@
-#include <iostream>
 #include <vector>
-#include <assert.h>
-#include <queue>
-
-
-#define ll long long
-#define vec vector
-#define pb push_back
-#define sz(v) (int)v.size()
-#define fr(i,n) for(ll i = 0; i < n; i++)
-#define F first
-#define S second
-
-
+#include <string>
 using namespace std;
 
-
+// odd-palindrome radii (Manacher): d[i] = radius of the longest palindrome
+// centered at i (spans [i-d[i]+1, i+d[i]-1], length 2*d[i]-1).
 vector<int> manacher_odd(string s) {
-    int n = s.size();
+    int n = (int)s.size();
     s = "$" + s + "^";
-    vector<int> p(n + 2);
+    vector<int> d(n + 2);
     int l = 0, r = 1;
-    for(int i = 1; i <= n; i++) {
-        p[i] = min(r - i, p[l + (r - i)]);
-        while(s[i - p[i]] == s[i + p[i]]) {
-            p[i]++;
-        }
-        if(i + p[i] > r) {
-            l = i - p[i], r = i + p[i];
-        }
+    for (int i = 1; i <= n; i++) {
+        d[i] = min(r - i, d[l + r - i]);
+        while (s[i - d[i]] == s[i + d[i]]) d[i]++;
+        if (i + d[i] > r) l = i - d[i], r = i + d[i];
     }
-    return vector<int>(begin(p) + 1, end(p) - 1);
+    return vector<int>(d.begin() + 1, d.end() - 1);
 }
 
-
-
+// both parities via separator '#': run manacher_odd on "#a#b#...#".
 vector<int> manacher(string s) {
     string t;
-    for(auto c: s) {
-        t += string("#") + c;
-    }
-    auto res = manacher_odd(t + "#");
-    return vector<int>(begin(res) + 1, end(res) - 1);
+    for (char c : s) { t += '#'; t += c; }
+    t += '#';
+    auto res = manacher_odd(t);
+    return vector<int>(res.begin() + 1, res.end() - 1);
 }

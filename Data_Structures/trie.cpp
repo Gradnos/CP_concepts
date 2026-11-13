@@ -1,53 +1,38 @@
-#include<vector>
+#include <vector>
 using namespace std;
-#define pb push_back
-#define sz(v) (int)v.size()
-#define ll long long
 
-
-// binary trie
-
-int B = 30; //   1<<30 max bytes
-
-struct node{
-    int nxt[2] = {-1,-1};
+// Binary trie (B bits). Caller creates the root: T.pb(node()); then add(x, 0, id).
+int B = 30;
+struct node {
+    int nxt[2] = {-1, -1};
     int cnt = 0;
     int id = 0;
 };
 vector<node> T;
 
-void add(int x, int v, int id){
-    for(int i = B; i>=0; i--){
-        int b = (x>>i)&1;
-        if(T[v].nxt[b] == -1){
-            T[v].nxt[b] = sz(T);
-            T.pb(node());
-        }
+void add(int x, int v, int id) {
+    for (int i = B; i >= 0; i--) {
+        int b = (x >> i) & 1;
+        if (T[v].nxt[b] == -1) { T[v].nxt[b] = (int)T.size(); T.push_back(node()); }
         v = T[v].nxt[b];
         T[v].cnt++;
-        if(i == 0){
-            T[v].id = id;
-        }
     }
-};
+    T[v].id = id;
+}
 
-void remove(int x, int v, int id){
-    for(int i = B; i >= 0; i--){
-        int b = (x>>i)&1;
-        v = T[v].nxt[b];
+void remove(int x, int v) {
+    for (int i = B; i >= 0; i--) {
+        v = T[v].nxt[(x >> i) & 1];
         T[v].cnt--;
-        if(i == 0) T[v].id = 0;
     }
-};
+}
 
-int getMin(int x, int v){
-    for(int i = B; i>= 0; i--){
-        int b = (x>>i)&1;
-        if(b==1){
-            ll xx= 1;
-        }
-        if(T[v].nxt[b] != -1 && T[T[v].nxt[b]].cnt) v = T[v].nxt[b];
-        else v = T[v].nxt[b^1];
+// id of the stored element minimizing xor with x (trie must be non-empty).
+int getMin(int x, int v) {
+    for (int i = B; i >= 0; i--) {
+        int b = (x >> i) & 1;
+        if (T[v].nxt[b] != -1 && T[T[v].nxt[b]].cnt) v = T[v].nxt[b];
+        else v = T[v].nxt[b ^ 1];
     }
     return T[v].id;
 }

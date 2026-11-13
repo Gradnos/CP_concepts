@@ -1,22 +1,16 @@
-#include<vector>
+#include <vector>
 using namespace std;
 
-const int N = 10000000;
-vector<int> lp(N+1);
-vector<int> pr;
-
-int main(){
-
-    for (int i=2; i <= N; ++i) {
-        if (lp[i] == 0) {
-            lp[i] = i;
-            pr.push_back(i);
-        }
-        for (int j = 0; i * pr[j] <= N; ++j) {
-            lp[i * pr[j]] = pr[j];
-            if (pr[j] == lp[i]) {
-                break;
-            }
+// Linear sieve: lp[i] = smallest prime factor of i, pr = list of primes <= N.
+void linearSieve(int N, vector<int>& lp, vector<int>& pr) {
+    lp.assign(N + 1, 0);
+    pr.clear();
+    for (int i = 2; i <= N; i++) {
+        if (!lp[i]) { lp[i] = i; pr.push_back(i); }
+        for (int p : pr) {
+            if ((long long)i * p > N) break;   // avoid int overflow
+            lp[i * p] = p;
+            if (p == lp[i]) break;
         }
     }
-}   
+}

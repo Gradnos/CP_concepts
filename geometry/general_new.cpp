@@ -146,6 +146,38 @@ bool segInter(P a, P b, P c, P d) {
     return onSeg(a, b, c) || onSeg(a, b, d) || onSeg(c, d, a) || onSeg(c, d, b);
 }
 
+// ---------------- point in polygon ----------------
+// 0 = outside, 1 = inside, 2 = on boundary. Works for any (convex or concave) polygon. O(n).
+int inPolygon(const vector<P>& poly, P p) {
+    int n = (int)poly.size();
+    bool in = false;
+    for (int i = 0; i < n; i++) {
+        P a = poly[i], b = poly[(i + 1) % n];
+        if (onSeg(a, b, p)) return 2;
+        if ((sgn(a.y - p.y) > 0) != (sgn(b.y - p.y) > 0)) {   // edge crosses horizontal ray
+            ld x = a.x + (p.y - a.y) * (b.x - a.x) / (b.y - a.y);
+            if (x > p.x) in = !in;
+        }
+    }
+    return in ? 1 : 0;
+}
+
+// point in convex polygon (vertices CCW, no 3 collinear edges). O(log n). Inclusive of boundary.
+bool inConvex(const vector<P>& poly, P p) {
+    int n = (int)poly.size();
+    if (n == 0) return false;
+    if (n == 1) return poly[0] == p;
+    if (n == 2) return onSeg(poly[0], poly[1], p);
+    if (orient(poly[0], poly[1], p) < 0 || orient(poly[0], poly[n - 1], p) > 0) return false;
+    int l = 1, r = n - 1;
+    while (r - l > 1) {
+        int m = (l + r) / 2;
+        if (orient(poly[0], poly[m], p) >= 0) l = m;
+        else r = m;
+    }
+    return orient(poly[l], poly[(l + 1) % n], p) >= 0;
+}
+
 // ---------------- circle ----------------
 struct Circle { P o; ld r; };
 bool inCircle(Circle c, P p) { return sgn(c.o.dist(p) - c.r) <= 0; }
